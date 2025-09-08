@@ -38,6 +38,20 @@ def detect_hazard(image_path, conf = 0.25, imgsz = 320, save_path = None):
     # Iterate through detected boxes, classes, and confidence scores
     for box, cls, score in zip(results.boxes.xyxy, results.boxes.cls, results.boxes.conf):
         hazards.append({
-            "label": labels[int(cls)]       # Convert class ID to label
-            
+            "label": labels[int(cls)],       # Convert class ID to label
+            "confidence": float(score),      # Convert tensor to float
+            "bbox": [int(x) for x in box]    # Bounding box coordinates
         })
+
+        # Draw box
+
+        x1, y1, x2, y2 = map(int, box)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)        # red box
+        cv2.putText(frame, f"{labels[int(cls)]} {score: .2f}",          # label + confidence
+                    (x1, y1 -10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+    
+    # If a save path is provided, save the annotated image
+    if save_path:
+        cv2.imwrite(save_path, frame)
+    
+    return hazards
