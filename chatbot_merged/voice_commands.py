@@ -1,5 +1,5 @@
 import asyncio
-import pipeline
+from . import pipeline
 import whisper
 import subprocess
 import speech_recognition as sr   # Can be used for handling mic input thru the browser
