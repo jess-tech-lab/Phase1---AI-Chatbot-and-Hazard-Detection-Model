@@ -25,12 +25,12 @@ class Processor:
         # Initialize the LLM (Gemini for testing)
         self.llm = ChatGoogleGenerativeAI(
             model='gemini-2.5-flash',
-            api_key='os.getenv("GEMINI_API_KEY")'
+            api_key=os.getenv("GEMINI_API_KEY")
         )
         
         # Defined actions for the LLM
         #print("we're initialising")
-        print("JH - Handle calendar and pill delegation")
+        print("JH - Pipeline -> Handle calendar and pill delegation")
         self.actions = {
             'calendar': CalendarService(self.llm).handle_calendar,
             'pill': delegation.delegate
@@ -118,6 +118,7 @@ class Processor:
             print(response.content.strip())
             return response.content.strip()
         except Exception as e:
+            print("Error determining action type: " + str(e))
             return {
                 "status": "error",
                 "message": f"Processing error: {str(e)}"

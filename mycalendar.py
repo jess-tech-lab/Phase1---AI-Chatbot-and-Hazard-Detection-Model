@@ -33,14 +33,15 @@ class CalendarService:
             
             if not creds or not creds.valid:
                 raise ValueError("Invalid or missing credentials")
-            
-            print("✓ JH - Calendar service initialized successfully.")
+
+            print("✓ JH - MyCalendar._init_calendar_service -> Calendar service initialized successfully.")
             return build('calendar', 'v3', credentials=creds)
         except Exception as e:
             print(f"Failed to initialize calendar service for real: {e}")
             return None
     
     async def _parse_calendar_command(self, command: str) -> Dict[str, Any]:
+        print(f"JH - MyCalendar._parse_calendar_command -> command: {command}")
         """Parse a natural language calendar command into structured event data."""
         # Check if LLM is initialized
         if not self.llm:
@@ -104,7 +105,8 @@ class CalendarService:
                 event_data["attendees"] = []
             else:
                 event_data = content
-            
+
+            print(f"JH - MyCalendar._parse_event_data -> Parsed event data: {event_data}")
             # Validate event times
             self._validate_event_times(event_data)
             
@@ -170,7 +172,7 @@ class CalendarService:
             
     async def handle_calendar(self, command: str) -> Dict[str, Any]:
         """Handle calendar-related commands."""
-        print(f"JH - Handling calendar command: {command}")
+        print(f"JH - MyCalendar.handle_calendar -> command: {command}")
         
         # Check if calendar service is initialized
         if not self.calendar_service:
@@ -184,7 +186,7 @@ class CalendarService:
             # Parse the command into event details
             event_data = await self._parse_calendar_command(command)
 
-            print(f"JH - Parsed event data: {event_data}")
+            print(f"JH - MyCalendar._parse_event_data -> event data: {event_data}")
             
             # Reprompt for missing required fields
             required_fields = ["title", "start_time", "end_time"]

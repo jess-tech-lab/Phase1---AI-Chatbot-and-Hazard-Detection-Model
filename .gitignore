@@ -24,3 +24,6 @@ __pycache__/
 
 # Ignore documentation files
 setup.md
+
+# Ignore qdrant data directory
+prompt_db-qdrant/
