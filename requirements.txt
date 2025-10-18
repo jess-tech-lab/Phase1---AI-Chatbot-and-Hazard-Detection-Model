@@ -50,3 +50,19 @@ typing-extensions==4.12.2
 uritemplate==4.1.1
 urllib3==2.3.0
 zstandard==0.23.0
+openai-whisper
+opencv-python
+ultralytics
+SpeechRecognition
+git+https://github.com/1-mbps/simple_llm.git
+openai
+qdrant-client
+PyAudio
+keyboard
+# pynput
+
+# --- Google API Dependencies (for Gemini LLM and Calendar) ---
+google-api-python-client
+google-auth
+google-auth-oauthlib
+langchain-google-genai

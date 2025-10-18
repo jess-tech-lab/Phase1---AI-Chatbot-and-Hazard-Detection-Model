@@ -20,7 +20,7 @@ class CalendarService:
         try:
             creds = None
             #token_path = os.getenv("D:\\chatbot_merged\\token.json")
-            token_path = "D:\\chatbot_merged\\token.json" #update file path
+            token_path = "token.json" #update file path
 
 
             
@@ -33,7 +33,8 @@ class CalendarService:
             
             if not creds or not creds.valid:
                 raise ValueError("Invalid or missing credentials")
-                
+            
+            print("✓ JH - Calendar service initialized successfully.")
             return build('calendar', 'v3', credentials=creds)
         except Exception as e:
             print(f"Failed to initialize calendar service for real: {e}")
@@ -169,6 +170,8 @@ class CalendarService:
             
     async def handle_calendar(self, command: str) -> Dict[str, Any]:
         """Handle calendar-related commands."""
+        print(f"JH - Handling calendar command: {command}")
+        
         # Check if calendar service is initialized
         if not self.calendar_service:
             return {
@@ -180,6 +183,8 @@ class CalendarService:
         try:
             # Parse the command into event details
             event_data = await self._parse_calendar_command(command)
+
+            print(f"JH - Parsed event data: {event_data}")
             
             # Reprompt for missing required fields
             required_fields = ["title", "start_time", "end_time"]

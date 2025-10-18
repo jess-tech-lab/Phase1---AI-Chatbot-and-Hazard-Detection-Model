@@ -10,6 +10,12 @@ from mycalendar import CalendarService
 from convo import Conversation
 from maindelegator import delegation
 
+import os
+from dotenv import load_dotenv
+
+# This line MUST run before any code that initializes the LLM
+load_dotenv()
+
 class Processor:
     """Handle different types of LLM actions through a pipeline system."""
     
@@ -19,11 +25,12 @@ class Processor:
         # Initialize the LLM (Gemini for testing)
         self.llm = ChatGoogleGenerativeAI(
             model='gemini-2.5-flash',
-            api_key='API KEY' #add ur api key here
+            api_key='os.getenv("GEMINI_API_KEY")'
         )
         
         # Defined actions for the LLM
         #print("we're initialising")
+        print("JH - Handle calendar and pill delegation")
         self.actions = {
             'calendar': CalendarService(self.llm).handle_calendar,
             'pill': delegation.delegate
