@@ -242,7 +242,10 @@ class CalendarService:
                 calendarId='primary',
                 body=event
             ).execute()
-            
+
+            # 💡 TROUBLESHOOTING STEP: Print the full API response
+            print(f"JH - MyCalendar.handle_calendar -> API Response: {created_event}")
+
             # Save the event to a log file
             self._save_to_log(created_event)
             
