@@ -13,8 +13,14 @@ from maindelegator import delegation
 import os
 from dotenv import load_dotenv
 
+from build_qdrant import get_delegator_client
+
+
 # This line MUST run before any code that initializes the LLM
 load_dotenv()
+
+# Can be False if created/built already
+retriever_client = get_delegator_client(recreate=False, rebuild=False)
 
 class Processor:
     """Handle different types of LLM actions through a pipeline system."""
@@ -30,10 +36,12 @@ class Processor:
         
         # Defined actions for the LLM
         #print("we're initialising")
-        print("JH - Pipeline -> Handle calendar and pill delegation")
+        print("JH - Pipeline -> Handle action delegation")
         self.actions = {
             'calendar': CalendarService(self.llm).handle_calendar,
-            'pill': delegation.delegate
+            'pill': delegation.delegate,
+            'call': delegation.delegate, 
+            'personal': delegation.delegate
         }
     
     async def process_audio(self, audio: bytes, mime_type: str = 'audio/wav') -> Dict[str, Any]:
@@ -79,22 +87,32 @@ class Processor:
         try:
             # Determine the action type from the command
             action_type = await self._determine_action_type(command)
-            print("Action Type" + action_type)
+            print("Action Type: " + action_type)
             
             # Get the function for the determined action type
             handler = self.actions.get(action_type)
 
-            
-            
             # Check if handler is defined
             if not handler:
                 return {
                     "status": "error",
                     "message": f"No handler for action type: {action_type}"
                 }
+
+            # ***************************************************************
+            # ** MODIFIED RAG Step: Check if action type requires context **
+            RAG_ACTIONS = {'pill', 'call', 'personal'}
+            context = ""
+            
+            # ** Check if the action type is in the set of RAG actions **
+            if action_type in RAG_ACTIONS and retriever_client:
+                retrieved_results = retriever_client.search(command, top_k=2) 
                 
-            # Call the handler
-            return await handler(command)
+                context = "\n".join(retrieved_results)
+                print(f"Qdrant context retrieved:\n{context}")
+                
+            return await handler(command, context=context)
+            # ***************************************************************
             
         except Exception as e:
             return {
@@ -109,7 +127,7 @@ class Processor:
         
         prompt = f"""
         Determine the action type based on the command: "{command}"
-        Possible action types are: calendar, pill, call, personal info request (personal). 
+        Possible action types are: calendar, pill, call, personal. 
         Reply with a one word action type in lowercase.
         """
         try:

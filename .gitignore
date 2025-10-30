@@ -27,3 +27,4 @@ setup.md
 
 # Ignore qdrant data directory
 prompt_db-qdrant/
+prompt_db_qdrant/
