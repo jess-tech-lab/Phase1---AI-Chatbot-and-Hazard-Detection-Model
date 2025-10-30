@@ -1,3 +1,4 @@
+import traceback
 from typing import Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
 import os
@@ -19,8 +20,9 @@ from build_qdrant import get_delegator_client
 # This line MUST run before any code that initializes the LLM
 load_dotenv()
 
-# Can be False if created/built already
-retriever_client = get_delegator_client(recreate=False, rebuild=False)
+CONF_THRESHOLD = 0.8  # tweak between 0.7–0.9 depending on embedding scale
+ # Can be False if created/built already
+retriever_client = get_delegator_client(recreate=False, rebuild=True)
 
 class Processor:
     """Handle different types of LLM actions through a pipeline system."""
@@ -105,13 +107,37 @@ class Processor:
             context = ""
             
             # ** Check if the action type is in the set of RAG actions **
+            print(f"Checking if action type '{action_type}' requires RAG context...")
             if action_type in RAG_ACTIONS and retriever_client:
-                retrieved_results = retriever_client.search(command, top_k=2) 
-                
-                context = "\n".join(retrieved_results)
-                print(f"Qdrant context retrieved:\n{context}")
-                
-            return await handler(command, context=context)
+                print(f"Action type '{action_type}' requires RAG context. Retrieving from Qdrant...")
+                try:
+                    retrieved_results = retriever_client.query(prompt=command, k=2)
+                    print(f"Retrieved {retrieved_results} results from Qdrant.")
+
+                    # Get best category and score
+                    if retrieved_results:
+                        best_cat = max(retrieved_results, key=retrieved_results.get)
+                        best_score = retrieved_results[best_cat]
+                    else:
+                        best_cat = None
+                        best_score = 0.0
+
+                    if best_score < CONF_THRESHOLD:
+                        print(f"Low confidence ({best_score:.2f}) — ignoring Qdrant result.")
+                        context = ""  # treat as generic
+                    else:
+                        context = best_cat  # pass persona key
+                        print(f"Qdrant context retrieved:\n{context}")
+                except Exception as e:
+                    print(f"Error retrieving from Qdrant: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+
+                return await handler(command, context=context)
+
+            elif action_type == "calendar":
+                print(f"Handling calendar action — no RAG context needed.")
+                return await handler(command)
             # ***************************************************************
             
         except Exception as e:

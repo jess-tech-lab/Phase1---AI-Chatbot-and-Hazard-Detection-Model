@@ -1,10 +1,11 @@
+from multiprocessing import context
 from convo import Conversation
 import dotenv
 
 class delegation:
     @staticmethod
-    async def delegate(command):
-        dotenv.load_dotenv("keys.env")
+    async def delegate(command, context: str = ""):
+        dotenv.load_dotenv(".env")
 
         PERSONA1 = """
         John Doe, an 86-year-old man, manages several chronic health conditions: diabetes, high blood pressure, and high cholesterol. His diabetes is controlled with Metformin, prescribed to enhance insulin sensitivity and help regulate blood sugar levels. He takes 1000 mg twice daily, which is essential for managing his type 2 diabetes. Additionally, he utilizes a continuous glucose monitor to track his blood sugar throughout the day, allowing for timely adjustments in his diet or medication.
@@ -24,9 +25,28 @@ class delegation:
         To support her overall health, she may also be prescribed a multivitamin to help mitigate nutritional deficiencies that can arise from concurrent treatments. Regular follow-up visits with her healthcare team ensure her medications are adjusted as needed, particularly in response to treatment tolerability and evolving health conditions. This comprehensive plan not only addresses her primary health issues but also aims to improve her quality of life in her senior years.
         """
 
-        print("we're delegating")
+        # Fallback to generic assistant
+        GENERIC_PERSONA = """
+        You are a helpful, knowledgeable AI assistant who answers questions accurately and kindly.
+        """
 
-        conversation = Conversation(personas=[PERSONA1, PERSONA2])
+        personas={"1": PERSONA1, "2": PERSONA2}
+
+        # Default to a generic LLM response
+        persona_key = None
+
+        # Extract the category (e.g., "1" or "2") from the context and dynamically match based on persona keys
+        persona_key = context if context in personas else None
+
+        # If we found a matching persona, use it; otherwise, fallback to generic
+        if persona_key:
+            selected_persona = personas[persona_key]
+            print(f"Delegating to persona {persona_key}")
+        else:
+            print("No matching persona found — using generic context.")
+            selected_persona = None
+
+        conversation = Conversation(personas=[selected_persona] if selected_persona else [GENERIC_PERSONA])
 
         result = conversation.stream_reply(command)
         #print(result)
