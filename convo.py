@@ -6,9 +6,9 @@ from simple_llm.agent import Agent
 from typing import Generator
 
 from agents import PersonaDelegator, HelperAgent
+from build_qdrant import get_delegator_client
 
-client = QdrantClient(path="prompt_db-qdrant")
-db = DelegatorClient(client, "persona-delegation", openai_embedding)
+db = get_delegator_client(recreate=False, rebuild=False)
 
 DELEGATION_ERROR_MSG = "Sorry, I am unsure who sent this message. Could you please provide your name, or provide more context?"
 
